@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Earnster - Telegram Mini App</title>
+<style>
+:root { --primary-green:#0a5c36; --accent-green:#108043; --light-green:#eef9f2; --bg-color:#f4f7f5; --card-bg:#fff; --text-dark:#1f2937; --text-muted:#6b7280; }
+* { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; }
+body { background:var(--bg-color); color:var(--text-dark); padding-bottom:70px; }
+.app-header { background:var(--card-bg); padding:12px 16px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,.03); }
+.user-info { display:flex; align-items:center; gap:10px; }
+.avatar { width:42px; height:42px; border-radius:50%; background:#0a5c36; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; }
+.user-details .name { font-size:14px; font-weight:bold; }
+.user-details .balance { font-size:12px; color:var(--accent-green); font-weight:bold; }
+.status-badge { background:#e6f4ea; color:#137333; font-size:11px; font-weight:bold; padding:4px 10px; border-radius:12px; }
+.tab-content { display:none; padding:16px; }
+.tab-content.active { display:block; }
+.hero-card { background:linear-gradient(135deg,#073b22,#0e6b3e); color:#fff; padding:20px; border-radius:16px; text-align:center; margin-bottom:16px; }
+.hero-card h1 { font-size:32px; color:#ffd700; margin:10px 0; }
+.stats-row { display:flex; gap:10px; margin-top:15px; }
+.stat-box { flex:1; background:rgba(255,255,255,.1); padding:10px; border-radius:10px; font-size:12px; }
+.stat-box span { display:block; font-size:14px; font-weight:bold; margin-top:4px; }
+.grid-container { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.grid-card { background:var(--card-bg); padding:16px 8px; border-radius:14px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,.04); cursor:pointer; font-size:11px; font-weight:bold; color:var(--text-dark); }
+.grid-card .icon { font-size:24px; margin-bottom:6px; }
+.ad-servers-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:16px; }
+.ad-btn { background:var(--card-bg); border:1px solid #d1e7dd; border-radius:12px; padding:14px; text-align:center; cursor:pointer; }
+.ad-btn h4 { font-size:13px; color:var(--primary-green); }
+.ad-btn p { font-size:11px; color:var(--text-muted); margin-top:4px; }
+.progress-bar-bg { background:#e0e0e0; height:10px; border-radius:5px; overflow:hidden; margin-top:8px; }
+.progress-bar-fill { background:var(--accent-green); height:100%; width:0%; transition:width .3s; }
+.btn-main { width:100%; background:var(--primary-green); color:#fff; border:none; padding:14px; border-radius:12px; font-size:14px; font-weight:bold; cursor:pointer; margin-top:16px; }
+.form-group { margin-bottom:14px; }
+.form-group label { display:block; font-size:12px; font-weight:bold; margin-bottom:6px; }
+.form-group input,.form-group select { width:100%; padding:12px; border:1px solid #ccc; border-radius:10px; font-size:14px; }
+.bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--card-bg); display:flex; justify-content:space-around; padding:8px 0; border-top:1px solid #eee; box-shadow:0 -2px 6px rgba(0,0,0,.03); }
+.nav-item { text-align:center; font-size:10px; color:var(--text-muted); cursor:pointer; flex:1; }
+.nav-item.active { color:var(--accent-green); font-weight:bold; }
+.nav-item .icon { font-size:18px; display:block; margin-bottom:2px; }
+.notice { background:#fff3cd; color:#856404; padding:10px; border-radius:10px; font-size:11px; margin-bottom:12px; }
+@media(max-width:360px) { .grid-container{gap:8px}.grid-card{padding:13px 4px}.nav-item{font-size:9px} }
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="user-info"><div class="avatar">A</div><div class="user-details"><div class="name">Ariful12345</div><div class="balance">BDT <span id="user-balance">12.00</span></div></div></div>
+  <div class="status-badge">● ACTIVE</div>
+</header>
+
+<section id="tab-home" class="tab-content active">
+  <div class="hero-card"><div>TOTAL BALANCE</div><h1>BDT <span id="home-balance">12.00</span></h1><div class="stats-row"><div class="stat-box">TOTAL EARNED<span id="total-earned">BDT 12.00</span></div><div class="stat-box">MY NETWORK<span id="network-count">0</span></div></div></div>
+  <div class="grid-container">
+    <div class="grid-card" onclick="switchTab('earn')"><div class="icon">▶️</div>EARN AD</div>
+    <div class="grid-card" onclick="showNotice('Web Tasks')"><div class="icon">🔗</div>WEB TASK</div>
+    <div class="grid-card" onclick="switchTab('tasks')"><div class="icon">✈️</div>TASKS</div>
+    <div class="grid-card" onclick="switchTab('wallet')"><div class="icon">👛</div>WITHDRAW</div>
+    <div class="grid-card" onclick="switchTab('refer')"><div class="icon">🎁</div>REFERRAL</div>
+    <div class="grid-card" onclick="switchTab('profile')"><div class="icon">👤</div>PROFILE</div>
+    <div class="grid-card" onclick="showNotice('Support Telegram: @YourSupportId')"><div class="icon">🎧</div>SUPPORT</div>
+  </div>
+</section>
+
+<section id="tab-earn" class="tab-content">
+  <div class="hero-card"><h3>ADS REWARD CENTER</h3><p style="font-size:11px;margin-top:4px">Complete daily missions to unlock maximum rewards</p></div>
+  <div style="background:white;padding:14px;border-radius:12px;margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12px"><span>Mission Progress</span><span><b id="completed-ads">0</b> / 100</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div></div>
+  <h4>4 Ad Servers (25 Ads Each)</h4>
+  <div class="ad-servers-grid">
+    <div class="ad-btn" onclick="watchAdServer(1)"><h4>Ad Server 1</h4><p><span id="s1-count">0</span>/25 Completed</p></div>
+    <div class="ad-btn" onclick="watchAdServer(2)"><h4>Ad Server 2</h4><p><span id="s2-count">0</span>/25 Completed</p></div>
+    <div class="ad-btn" onclick="watchAdServer(3)"><h4>Ad Server 3</h4><p><span id="s3-count">0</span>/25 Completed</p></div>
+    <div class="ad-btn" onclick="watchAdServer(4)"><h4>Ad Server 4</h4><p><span id="s4-count">0</span>/25 Completed</p></div>
+  </div>
+  <button class="btn-main" onclick="watchAdServer(1)">WATCH AD &amp; EARN ▶</button>
+  <p style="font-size:11px;color:var(--text-muted);margin-top:10px">Demo only: this page does not verify real ad views or pay real rewards.</p>
+</section>
+
+<section id="tab-tasks" class="tab-content">
+  <h3>Telegram Tasks</h3><p style="font-size:12px;color:var(--text-muted);margin:8px 0 12px">Join channels and earn instant BDT</p>
+  <div style="background:white;padding:14px;border-radius:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>Join Official Channel</b><p style="font-size:11px;color:green">+ BDT 2.00 (demo)</p></div><button style="padding:6px 12px;background:var(--primary-green);color:white;border:none;border-radius:6px" onclick="window.open('https://t.me','_blank','noopener')">Join &amp; Verify</button></div>
+</section>
+
+<section id="tab-refer" class="tab-content">
+  <div class="hero-card"><h3>Invite &amp; Earn</h3><p style="font-size:11px;margin-top:4px">Expand your network and get 15% lifetime commissions</p></div>
+  <div class="form-group"><label>YOUR NETWORK LINK (DEMO)</label><input type="text" id="ref-link" value="https://t.me/Earnster_bot?start=12345" readonly></div>
+  <button class="btn-main" onclick="copyRefLink()">COPY LINK</button><button class="btn-main" style="background:#0088cc;margin-top:8px" onclick="shareTelegram()">Share on Telegram</button>
+</section>
+
+<section id="tab-wallet" class="tab-content">
+  <div class="notice">⚠️ Demo wallet only. Withdrawal requests are not sent to a real payment provider.</div>
+  <div class="form-group"><label>WITHDRAWAL AMOUNT (BDT)</label><input type="number" id="withdraw-amount" placeholder="0.00" min="0.01" step="0.01"></div>
+  <div class="form-group"><label>ACCOUNT / WALLET ADDRESS</label><input type="text" id="wallet-address" placeholder="Enter bKash/Nagad Number" autocomplete="off"></div>
+  <div class="form-group"><label>SELECT PAYMENT GATEWAY</label><select id="payment-gateway"><option value="bkash">bKash</option><option value="nagad">Nagad</option></select></div>
+  <button class="btn-main" onclick="processWithdraw()">WITHDRAW NOW</button>
+</section>
+
+<section id="tab-profile" class="tab-content">
+  <div style="background:white;padding:16px;border-radius:12px;text-align:center;margin-bottom:12px"><h3>Ariful12345</h3><p style="font-size:12px;color:var(--text-muted)">@ariful420hhg6</p></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px"><div style="background:white;padding:12px;border-radius:10px;font-size:12px">MAIN BALANCE<br><b style="color:green;font-size:16px">BDT <span id="profile-balance">12.00</span></b></div><div style="background:white;padding:12px;border-radius:10px;font-size:12px">ADS VIEWED<br><b style="font-size:16px" id="total-ads-viewed">0</b></div></div>
+</section>
+
+<nav class="bottom-nav">
+  <div class="nav-item active" data-tab="home" onclick="switchTab('home')"><span class="icon">🏠</span>HOME</div>
+  <div class="nav-item" data-tab="earn" onclick="switchTab('earn')"><span class="icon">▶️</span>EARN</div>
+  <div class="nav-item" data-tab="tasks" onclick="switchTab('tasks')"><span class="icon">✈️</span>TASKS</div>
+  <div class="nav-item" data-tab="refer" onclick="switchTab('refer')"><span class="icon">🎁</span>REFER</div>
+  <div class="nav-item" data-tab="wallet" onclick="switchTab('wallet')"><span class="icon">👛</span>WALLET</div>
+  <div class="nav-item" data-tab="profile" onclick="switchTab('profile')"><span class="icon">👤</span>PROFILE</div>
+</nav>
+
+<script>
+let balance = 12.00;
+let totalAds = 0;
+let totalEarned = 12.00;
+const serverCounts = {1:0,2:0,3:0,4:0};
+
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-content').forEach(tab => tab.classList.toggle('active', tab.id === 'tab-' + tabName));
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.tab === tabName));
+}
+function showNotice(message) { alert(message + ' — demo screen'); }
+function watchAdServer(serverNum) {
+  if (totalAds >= 100) { alert('Daily demo limit reached (100 ads).'); return; }
+  if (serverCounts[serverNum] >= 25) { alert('Server ' + serverNum + ' daily 25 ads limit reached!'); return; }
+  alert('Demo ad action only. No real ad is verified and no real money is earned.');
+  serverCounts[serverNum]++;
+  totalAds++;
+  balance += 0.50;
+  totalEarned += 0.50;
+  document.getElementById('s' + serverNum + '-count').textContent = serverCounts[serverNum];
+  document.getElementById('completed-ads').textContent = totalAds;
+  document.getElementById('total-ads-viewed').textContent = totalAds;
+  document.getElementById('progress-fill').style.width = Math.min(totalAds, 100) + '%';
+  document.getElementById('total-earned').textContent = 'BDT ' + totalEarned.toFixed(2);
+  updateBalanceUI();
+}
+function updateBalanceUI() {
+  ['user-balance','home-balance','profile-balance'].forEach(id => document.getElementById(id).textContent = balance.toFixed(2));
+}
+async function copyRefLink() {
+  const value = document.getElementById('ref-link').value;
+  try {
+    await navigator.clipboard.writeText(value);
+    alert('Referral link copied!');
+  } catch (e) {
+    const field = document.getElementById('ref-link');
+    field.focus(); field.select();
+    const copied = document.execCommand('copy');
+    alert(copied ? 'Referral link copied!' : 'Please copy the selected link manually.');
+  }
+}
+function shareTelegram() {
+  const link = document.getElementById('ref-link').value;
+  window.open('https://t.me/share/url?url=' + encodeURIComponent(link), '_blank', 'noopener');
+}
+function processWithdraw() {
+  const amount = Number(document.getElementById('withdraw-amount').value);
+  const address = document.getElementById('wallet-address').value.trim();
+  const gateway = document.getElementById('payment-gateway').value;
+  if (!Number.isFinite(amount) || amount <= 0 || !address) { alert('Please enter a valid amount and wallet number.'); return; }
+  if (amount > balance) { alert('Insufficient demo balance!'); return; }
+  if (!confirm('Demo only: submit a simulated withdrawal of BDT ' + amount.toFixed(2) + ' via ' + gateway.toUpperCase() + '? No real payment will be sent.')) return;
+  balance = Math.round((balance - amount) * 100) / 100;
+  updateBalanceUI();
+  alert('Demo withdrawal recorded locally. No real withdrawal request was sent.');
+}
+</script>
+</body>
+</html>
